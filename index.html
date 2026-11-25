@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>e-Дафтар Pro Max — Системаи Миллии Электронии Таҳсилот</title>
+  <title>e-Дафтар Pro Max — Платформаи Интеллектуалии Омӯзиш ва Олимпиада</title>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -284,6 +284,12 @@
       box-shadow: 0 0 0 3px var(--orange-soft);
     }
 
+    input[readonly] {
+      background: #121318;
+      color: var(--orange-bright);
+      border-color: rgba(255, 107, 0, 0.35);
+    }
+
     button {
       cursor: pointer;
       border: none;
@@ -484,6 +490,16 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 0.8rem;
     }
+
+    .action-tip {
+      margin-top: 6px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: #101115;
+      border-left: 3px solid var(--orange);
+      font-size: 0.82rem;
+      color: #e4e4e7;
+    }
   </style>
 </head>
 <body>
@@ -505,9 +521,9 @@
     <!-- ВОРИДШАВӢ ВА РЕГИСТРАТСИЯ -->
     <div id="authSection" class="card" style="max-width: 500px; margin: 24px auto;">
       <div style="text-align:center; margin-bottom:16px;">
-        <span class="badge" style="margin-bottom:8px;">Ҷумҳурии Тоҷикистон • Системаи Таҳсилот</span>
+        <span class="badge" style="margin-bottom:8px;">Ҷумҳурии Тоҷикистон • Платформаи Омӯзишӣ</span>
         <h1 style="font-size:1.78rem;">e-Дафтар <span style="color:var(--orange);">Pro Max</span></h1>
-        <p class="muted">Журнали рақамии синфӣ, ташхиси дониш ва робитаи мустақим</p>
+        <p class="muted">Ташхиси дониш, омодагӣ ба олимпиада ва робитаи мустақим</p>
       </div>
 
       <div class="tabs">
@@ -526,7 +542,7 @@
             <label for="roleInput">Нақш дар система</label>
             <select id="roleInput" onchange="toggleRegisterRoleFields()">
               <option value="student">Хонанда / Волидайн</option>
-              <option value="teacher">Муаллим</option>
+              <option value="teacher">Муаллим (як мактаб ва як синф)</option>
               <option value="admin">Администратори муассиса</option>
             </select>
           </div>
@@ -539,6 +555,12 @@
             </p>
           </div>
 
+          <div id="regTeacherClassField" class="field hidden">
+            <label for="teacherClassInput">Синфи қулфшавандаи муаллим (танҳо як синф)</label>
+            <input id="teacherClassInput" type="text" placeholder="Масалан: 9-А" />
+            <p class="muted" style="margin-top:4px;">Пас аз регистратсия муаллим танҳо бо ҳамин мактаб ва ҳамин синф кор мекунад.</p>
+          </div>
+
           <div id="regChildCodeField" class="field">
             <label for="childCodeInput">Рамз / ID хонанда</label>
             <input id="childCodeInput" type="text" placeholder="Масалан: ST-2010" />
@@ -546,7 +568,7 @@
           </div>
 
           <div class="field">
-            <label for="schoolSelect">Муассисаи таълимӣ</label>
+            <label for="schoolSelect">Муассисаи таълимӣ (танҳо як муассиса)</label>
             <select id="schoolSelect" onchange="toggleCustomInput('schoolSelect', 'regCustomSchoolField', 'schoolCustomInput')">
               <option value="Маркази Таҳсилоти Иловагӣ">Маркази Таҳсилоти Иловагӣ</option>
               <option value="Гимназия №5">Гимназия №5</option>
@@ -632,6 +654,7 @@
         <button type="button" class="btn-outline active" data-tab="smart" onclick="switchSection('smart', this)">Панели Интеллектуалӣ</button>
         <button type="button" class="btn-outline" data-tab="students" onclick="switchSection('students', this)">Хонандагон</button>
         <button type="button" class="btn-outline" data-tab="grades" onclick="switchSection('grades', this)">Баҳо (1–10) ва Давомот</button>
+        <button type="button" class="btn-outline" data-tab="olympiad" onclick="switchSection('olympiad', this)">Олимпиада ва Мусобиқа</button>
         <button type="button" class="btn-outline" data-tab="announcements" onclick="switchSection('announcements', this)">Эълонҳо</button>
         <button type="button" class="btn-outline" data-tab="chat" onclick="switchSection('chat', this)">Чат</button>
       </div>
@@ -751,7 +774,10 @@
       </div>
 
       <div id="sec-grades" class="card hidden">
-        <h2 id="gradesTitle">Баҳогузорӣ (1–10) ва Давомот</h2>
+        <div class="item-top" style="margin-bottom:12px;">
+          <h2 id="gradesTitle" style="margin:0;">Баҳогузорӣ (1–10) ва Давомот</h2>
+          <button type="button" class="btn-white btn-sm" onclick="exportGradesCsv()">Боргирии гузориш (CSV)</button>
+        </div>
 
         <div id="gradeFormPanel" class="item hidden" style="margin-bottom:14px;">
           <h3>Гузоштани баҳо, давомот ва ёддошти фаврӣ</h3>
@@ -830,6 +856,52 @@
         <div id="gradesList"></div>
       </div>
 
+      <!-- БАХШИ ОЛИМПИАДА ВА МУСОБИҚА -->
+      <div id="sec-olympiad" class="card hidden">
+        <div class="item-top" style="margin-bottom:12px;">
+          <div>
+            <h2 style="margin:0;">Омодагӣ ба Олимпиада ва Мусобиқаҳо</h2>
+            <p class="muted">Супоришҳои махсус, санаи озмунҳо ва пешрафти амалии хонандагон</p>
+          </div>
+          <span class="badge">Олимпиада</span>
+        </div>
+
+        <div id="olympiadFormPanel" class="item hidden" style="margin-bottom:14px;">
+          <h3>Сабти супориш ё мусобиқаи нав</h3>
+          <form onsubmit="handleAddOlympiadTask(event)">
+            <div class="grid-2">
+              <div class="field">
+                <label for="olTitleInput">Номи олимпиада ё мавзӯъ</label>
+                <input id="olTitleInput" type="text" required placeholder="Масалан: Олимпиадаи Информатика (C++) / Масъалаҳои олимпӣ" />
+              </div>
+              <div class="field">
+                <label for="olClassInput">Синф</label>
+                <input id="olClassInput" type="text" required placeholder="Масалан: 9-А" />
+              </div>
+              <div class="field">
+                <label for="olDeadlineInput">Сана ё мӯҳлат</label>
+                <input id="olDeadlineInput" type="text" required placeholder="Масалан: 15 декабр" />
+              </div>
+              <div class="field">
+                <label for="olLevelInput">Сатҳ / Ҳадаф</label>
+                <select id="olLevelInput">
+                  <option value="Мактабӣ / Марказӣ">Мактабӣ / Марказӣ</option>
+                  <option value="Шаҳрӣ / Ноҳиявӣ">Шаҳрӣ / Ноҳиявӣ</option>
+                  <option value="Ҷумҳуриявӣ">Ҷумҳуриявӣ</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="olDescInput">Тавсифи вазифа</label>
+              <textarea id="olDescInput" rows="2" required placeholder="Масалан: Ҳалли 5 масъалаи алгоритмӣ ва санҷиши вақти иҷро..."></textarea>
+            </div>
+            <button type="submit" class="btn-orange">Сабти супориш</button>
+          </form>
+        </div>
+
+        <div id="olympiadList"></div>
+      </div>
+
       <div id="sec-announcements" class="card hidden">
         <div class="item-top" style="margin-bottom:12px;">
           <h2 id="announcementsTitle" style="margin:0;">Эълонҳои синфӣ</h2>
@@ -896,8 +968,8 @@
       admin: "ADMIN2026"
     };
 
-    const STORAGE_CACHE_KEY = "edaftar_offline_cache_v2";
-    const STORAGE_QUEUE_KEY = "edaftar_offline_queue_v2";
+    const STORAGE_CACHE_KEY = "edaftar_offline_cache_v3";
+    const STORAGE_QUEUE_KEY = "edaftar_offline_queue_v3";
 
     function loadLocalCache() {
       try {
@@ -1078,8 +1150,11 @@
     function toggleRegisterRoleFields() {
       const role = document.getElementById("roleInput").value;
       const isStudent = role === "student";
+      const isTeacher = role === "teacher";
       document.getElementById("regChildCodeField").classList.toggle("hidden", !isStudent);
       document.getElementById("regStaffAccessField").classList.toggle("hidden", isStudent);
+      document.getElementById("regTeacherClassField").classList.toggle("hidden", !isTeacher);
+      document.getElementById("teacherClassInput").required = isTeacher;
     }
 
     function resolveSelectOrCustom(selectId, customInputId, fallback = "") {
@@ -1096,6 +1171,7 @@
       fullName: "Корбар",
       role: "student",
       school: "",
+      assignedClass: "",
       boundStudentCode: ""
     };
 
@@ -1103,6 +1179,7 @@
     let studentsCache = cached.students || {};
     let gradesCache = cached.grades || {};
     let announcementsCache = cached.announcements || {};
+    let olympiadCache = cached.olympiad || {};
     let chatCache = cached.chat || {};
 
     function isAdmin() {
@@ -1115,6 +1192,14 @@
 
     function canManageSchool() {
       return isTeacher() || isAdmin();
+    }
+
+    function getTeacherLockedClass() {
+      return isTeacher() ? normalizeClass(currentProfile.assignedClass || "") : "";
+    }
+
+    function getTeacherLockedSchool() {
+      return isTeacher() ? normalizeSchool(currentProfile.school || "") : "";
     }
 
     function getRoleLabel(role) {
@@ -1152,26 +1237,39 @@
     }
 
     function isStudentAllowedForCurrentUser(studentKey, st = {}) {
-      if (canManageSchool()) return true;
+      if (isAdmin()) return true;
+
+      if (isTeacher()) {
+        const lockedClass = getTeacherLockedClass();
+        const lockedSchool = getTeacherLockedSchool();
+        const classOk = !lockedClass || normalizeClass(st.className) === lockedClass;
+        const schoolOk = !lockedSchool || normalizeSchool(st.school) === lockedSchool;
+        return classOk && schoolOk;
+      }
+
       const boundCode = getBoundStudentCode();
       if (!boundCode) return false;
-
       const stCode = normalizeCode(st.studentCode || "");
       const stKeyNorm = normalizeCode(studentKey);
       return stCode === boundCode || stKeyNorm === boundCode;
     }
 
-    function isAnnouncementAllowedForCurrentUser(ann = {}) {
-      if (canManageSchool()) return true;
+    function isClassAllowedForCurrentUser(className, schoolName = "") {
+      if (isAdmin()) return true;
 
-      const annClass = normalizeClass(ann.className || "");
-      const annSchool = normalizeSchool(ann.school || "");
+      if (isTeacher()) {
+        const lockedClass = getTeacherLockedClass();
+        const lockedSchool = getTeacherLockedSchool();
+        const classOk = !lockedClass || normalizeClass(className) === lockedClass;
+        const schoolOk = !lockedSchool || !schoolName || normalizeSchool(schoolName) === lockedSchool;
+        return classOk && schoolOk;
+      }
+
       const parentClass = getParentAllowedClass();
       const parentSchool = getParentAllowedSchool();
-
       if (!parentClass) return false;
-      const classMatch = annClass === parentClass;
-      const schoolMatch = !parentSchool || !annSchool || annSchool === parentSchool;
+      const classMatch = normalizeClass(className) === parentClass;
+      const schoolMatch = !parentSchool || !schoolName || normalizeSchool(schoolName) === parentSchool;
       return classMatch && schoolMatch;
     }
 
@@ -1181,14 +1279,23 @@
         if (!studentGrades || typeof studentGrades !== "object") return;
         const stObj = studentsCache[studentKey] || {};
         Object.entries(studentGrades).forEach(([gradeId, item]) => {
-          const recordCode = normalizeCode(item.studentCode || stObj.studentCode || "");
-          const allowed = canManageSchool() || (
-            getBoundStudentCode() !== "" && (
+          let allowed = false;
+          if (isAdmin()) {
+            allowed = true;
+          } else if (isTeacher()) {
+            const lockedClass = getTeacherLockedClass();
+            const lockedSchool = getTeacherLockedSchool();
+            const rowClass = normalizeClass(item.className || stObj.className || "");
+            const rowSchool = normalizeSchool(item.school || stObj.school || "");
+            allowed = (!lockedClass || rowClass === lockedClass) && (!lockedSchool || !rowSchool || rowSchool === lockedSchool);
+          } else {
+            const recordCode = normalizeCode(item.studentCode || stObj.studentCode || "");
+            allowed = getBoundStudentCode() !== "" && (
               recordCode === getBoundStudentCode() ||
               normalizeCode(studentKey) === getBoundStudentCode() ||
               isStudentAllowedForCurrentUser(studentKey, stObj)
-            )
-          );
+            );
+          }
 
           if (allowed) {
             rows.push({
@@ -1227,6 +1334,9 @@
           const fullName = document.getElementById("fullNameInput").value.trim();
           const role = document.getElementById("roleInput").value;
           const school = resolveSelectOrCustom("schoolSelect", "schoolCustomInput", "Мактаб");
+          const assignedClass = role === "teacher"
+            ? normalizeClass(document.getElementById("teacherClassInput").value)
+            : "";
           const boundStudentCode = role === "student"
             ? normalizeCode(document.getElementById("childCodeInput").value)
             : "";
@@ -1244,6 +1354,11 @@
             }
           }
 
+          if (role === "teacher" && !assignedClass) {
+            showBanner("Барои муаллим ворид кардани як синфи қулфшаванда (масалан: 9-А) ҳатмист.");
+            return;
+          }
+
           if (role === "student" && !boundStudentCode) {
             showBanner("Барои волидайн / хонанда ворид кардани Рамз / ID хонанда ҳатмист.");
             return;
@@ -1257,6 +1372,7 @@
             fullName,
             role,
             school,
+            assignedClass,
             boundStudentCode,
             email,
             emailVerified: false,
@@ -1330,6 +1446,44 @@
       }
     }
 
+    function applyTeacherLocksToForms() {
+      const stSchoolSel = document.getElementById("stSchoolSelect");
+      const stClassInp = document.getElementById("stClass");
+      const annSchoolInp = document.getElementById("annSchoolInput");
+      const annClassInp = document.getElementById("annClassInput");
+      const olClassInp = document.getElementById("olClassInput");
+
+      if (isTeacher()) {
+        if (currentProfile.school) {
+          let matchedOpt = Array.from(stSchoolSel.options).find((o) => o.value === currentProfile.school);
+          if (!matchedOpt) {
+            const opt = document.createElement("option");
+            opt.value = currentProfile.school;
+            opt.textContent = currentProfile.school;
+            stSchoolSel.prepend(opt);
+          }
+          stSchoolSel.value = currentProfile.school;
+          stSchoolSel.disabled = true;
+          annSchoolInp.value = currentProfile.school;
+          annSchoolInp.readOnly = true;
+        }
+        if (currentProfile.assignedClass) {
+          stClassInp.value = currentProfile.assignedClass;
+          stClassInp.readOnly = true;
+          annClassInp.value = currentProfile.assignedClass;
+          annClassInp.readOnly = true;
+          olClassInp.value = currentProfile.assignedClass;
+          olClassInp.readOnly = true;
+        }
+      } else {
+        stSchoolSel.disabled = false;
+        stClassInp.readOnly = false;
+        annSchoolInp.readOnly = false;
+        annClassInp.readOnly = false;
+        olClassInp.readOnly = false;
+      }
+    }
+
     function updateParentPrivacyUi() {
       const isParentOrStudent = !canManageSchool();
       const panel = document.getElementById("parentBindPanel");
@@ -1337,11 +1491,15 @@
 
       document.getElementById("studentsTitle").textContent = isParentOrStudent
         ? "Маълумоти хонандаи шумо"
-        : "Рӯйхати хонандагон";
+        : (isTeacher()
+            ? `Хонандагони синфи ${currentProfile.assignedClass || "—"}`
+            : "Рӯйхати хонандагон");
 
       document.getElementById("gradesTitle").textContent = isParentOrStudent
         ? "Баҳо (1–10) ва Давомоти хонандаи шумо"
-        : "Баҳогузорӣ (1–10) ва Давомот";
+        : (isTeacher()
+            ? `Баҳо (1–10) ва Давомоти синфи ${currentProfile.assignedClass || "—"}`
+            : "Баҳогузорӣ (1–10) ва Давомот");
 
       const code = getBoundStudentCode();
       const bindInput = document.getElementById("bindCodeInput");
@@ -1350,9 +1508,12 @@
       const matched = getBoundStudentRecord();
       const allowedClass = getParentAllowedClass();
 
-      if (canManageSchool()) {
-        document.getElementById("announcementsTitle").textContent = "Эълонҳои муассиса ва синфҳо";
-        document.getElementById("announcementsClassBadge").textContent = getRoleLabel(currentProfile.role);
+      if (isAdmin()) {
+        document.getElementById("announcementsTitle").textContent = "Эълонҳои муассисаҳо ва синфҳо";
+        document.getElementById("announcementsClassBadge").textContent = "АДМИН";
+      } else if (isTeacher()) {
+        document.getElementById("announcementsTitle").textContent = `Эълонҳои синфи ${currentProfile.assignedClass || "—"}`;
+        document.getElementById("announcementsClassBadge").textContent = `${currentProfile.assignedClass || "СИНФ"} (ҚУЛФ)`;
       } else {
         document.getElementById("announcementsTitle").textContent = allowedClass
           ? `Эълонҳои синфи ${allowedClass}`
@@ -1389,16 +1550,16 @@
           const snap = await db.ref(`users/${uid}`).get();
           currentProfile = snap.exists()
             ? snap.val()
-            : { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+            : { fullName: user.email || "Корбар", role: "student", school: "", assignedClass: "", boundStudentCode: "" };
           if (!currentProfile.fullName) {
             currentProfile.fullName = (user.email || "Корбар").split("@")[0];
           }
           saveLocalCache({ profile: currentProfile });
         } catch (_) {
-          currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+          currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", assignedClass: "", boundStudentCode: "" };
         }
       } else {
-        currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+        currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", assignedClass: "", boundStudentCode: "" };
       }
 
       document.getElementById("authSection").classList.add("hidden");
@@ -1406,8 +1567,9 @@
 
       const role = currentProfile.role || "student";
       const schoolPart = currentProfile.school ? ` • ${currentProfile.school}` : "";
+      const classPart = role === "teacher" && currentProfile.assignedClass ? ` • Синф: ${currentProfile.assignedClass}` : "";
       document.getElementById("userMeta").textContent =
-        `${currentProfile.fullName} (${user.email || ""})${schoolPart}`;
+        `${currentProfile.fullName} (${user.email || ""})${schoolPart}${classPart}`;
 
       const badge = document.getElementById("roleBadge");
       badge.textContent = getRoleLabel(role);
@@ -1417,11 +1579,13 @@
       document.getElementById("addStudentPanel").classList.toggle("hidden", !canManage);
       document.getElementById("gradeFormPanel").classList.toggle("hidden", !canManage);
       document.getElementById("announcementPanel").classList.toggle("hidden", !canManage);
+      document.getElementById("olympiadFormPanel").classList.toggle("hidden", !canManage);
 
       if (currentProfile.school && !document.getElementById("annSchoolInput").value) {
         document.getElementById("annSchoolInput").value = currentProfile.school;
       }
 
+      applyTeacherLocksToForms();
       updateParentPrivacyUi();
       renderAllUI();
       startRealtimeListeners();
@@ -1429,7 +1593,7 @@
     });
 
     function switchSection(secName, btnEl) {
-      for (const name of ["smart", "students", "grades", "announcements", "chat"]) {
+      for (const name of ["smart", "students", "grades", "olympiad", "announcements", "chat"]) {
         document.getElementById(`sec-${name}`).classList.toggle("hidden", name !== secName);
       }
       document.querySelectorAll(".nav-tabs button").forEach((b) => b.classList.remove("active"));
@@ -1446,8 +1610,12 @@
       }
 
       const fullName = document.getElementById("stName").value.trim();
-      const school = resolveSelectOrCustom("stSchoolSelect", "stSchoolCustom", currentProfile.school || "Мактаб");
-      const className = normalizeClass(document.getElementById("stClass").value || "9-А");
+      const school = isTeacher() && currentProfile.school
+        ? currentProfile.school
+        : resolveSelectOrCustom("stSchoolSelect", "stSchoolCustom", currentProfile.school || "Мактаб");
+      const className = isTeacher() && currentProfile.assignedClass
+        ? normalizeClass(currentProfile.assignedClass)
+        : normalizeClass(document.getElementById("stClass").value || "9-А");
       const rawCode = normalizeCode(document.getElementById("stCode").value);
       const finalCode = rawCode || `ST-${Date.now().toString().slice(-5)}`;
 
@@ -1494,8 +1662,12 @@
 
     async function handleDeleteStudent(studentKey) {
       if (!canManageSchool()) return;
-      const st = studentsCache[studentKey];
-      const label = st && st.fullName ? `"${st.fullName}"` : "ин хонандаро";
+      const st = studentsCache[studentKey] || {};
+      if (!isStudentAllowedForCurrentUser(studentKey, st)) {
+        showBanner("Шумо ҳуқуқи тағйири маълумоти ин синф ё мактабро надоред.");
+        return;
+      }
+      const label = st.fullName ? `"${st.fullName}"` : "ин хонандаро";
       const ok = await openConfirmModal(`Оё мутмаинед, ки ${label} аз рӯйхат пок карда шавад?`);
       if (!ok) return;
 
@@ -1536,11 +1708,18 @@
       }
 
       const st = studentsCache[studentKey] || {};
+      if (!isStudentAllowedForCurrentUser(studentKey, st)) {
+        showBanner("Шумо танҳо ба хонандагони мактаб ва синфи худ баҳо гузошта метавонед.");
+        return;
+      }
+
       const safeKeyId = safeKey(studentKey, "student");
       const payload = {
         studentKey: safeKeyId,
         studentCode: normalizeCode(st.studentCode || ""),
         studentName: st.fullName || safeKeyId,
+        className: normalizeClass(st.className || currentProfile.assignedClass || ""),
+        school: st.school || currentProfile.school || "",
         subject,
         score,
         attendance,
@@ -1590,6 +1769,84 @@
       }
     }
 
+    async function handleAddOlympiadTask(e) {
+      e.preventDefault();
+      hideBanner();
+
+      if (!canManageSchool()) {
+        showBanner("Танҳо муаллим ё администратор метавонад супориши олимпиада сабт кунад.");
+        return;
+      }
+
+      const title = document.getElementById("olTitleInput").value.trim();
+      const className = isTeacher() && currentProfile.assignedClass
+        ? normalizeClass(currentProfile.assignedClass)
+        : normalizeClass(document.getElementById("olClassInput").value);
+      const deadline = document.getElementById("olDeadlineInput").value.trim();
+      const level = document.getElementById("olLevelInput").value;
+      const description = document.getElementById("olDescInput").value.trim();
+      const school = currentProfile.school || "Мактаб";
+
+      if (!title || !className || !deadline || !description) {
+        showBanner("Лутфан ҳамаи майдонҳои олимпиадаро пур кунед.");
+        return;
+      }
+
+      const payload = {
+        title,
+        className,
+        school,
+        deadline,
+        level,
+        description,
+        completed: false,
+        author: currentProfile.fullName || currentUser.email,
+        createdAt: Date.now()
+      };
+
+      document.getElementById("olTitleInput").value = "";
+      document.getElementById("olDeadlineInput").value = "";
+      document.getElementById("olDescInput").value = "";
+
+      if (!navigator.onLine) {
+        const tempKey = `local_${Date.now()}`;
+        olympiadCache[tempKey] = payload;
+        saveLocalCache({ olympiad: olympiadCache });
+        renderOlympiad(olympiadCache);
+        pushOfflineQueue({ type: "push", path: "olympiad", payload });
+        showBanner("Супориши олимпиада дар Офлайн-буфер сабт шуд!", true);
+        return;
+      }
+
+      try {
+        await db.ref("olympiad").push(payload);
+        showBanner("Супориши олимпиада сабт шуд!", true);
+      } catch (err) {
+        pushOfflineQueue({ type: "push", path: "olympiad", payload });
+        showBanner("Дар буфери офлайн нигоҳ дошта шуд: " + (err.message || err));
+      }
+    }
+
+    async function toggleOlympiadDone(taskId, currentVal) {
+      try {
+        await db.ref(`olympiad/${safeKey(taskId)}/completed`).set(!currentVal);
+      } catch (err) {
+        showBanner("Хато ҳангоми навсозии ҳолат: " + (err.message || err));
+      }
+    }
+
+    async function handleDeleteOlympiadTask(taskId) {
+      if (!canManageSchool()) return;
+      const ok = await openConfirmModal("Ин супориши олимпиада пок карда шавад?");
+      if (!ok) return;
+      try {
+        await db.ref(`olympiad/${safeKey(taskId)}`).remove();
+        showBanner("Супориш пок карда шуд.", true);
+      } catch (err) {
+        showBanner("Хато ҳангоми пок кардан: " + (err.message || err));
+      }
+    }
+
     async function handleAddAnnouncement(e) {
       e.preventDefault();
       hideBanner();
@@ -1599,8 +1856,12 @@
         return;
       }
 
-      const school = document.getElementById("annSchoolInput").value.trim();
-      const className = normalizeClass(document.getElementById("annClassInput").value);
+      const school = isTeacher() && currentProfile.school
+        ? currentProfile.school
+        : document.getElementById("annSchoolInput").value.trim();
+      const className = isTeacher() && currentProfile.assignedClass
+        ? normalizeClass(currentProfile.assignedClass)
+        : normalizeClass(document.getElementById("annClassInput").value);
       const title = document.getElementById("annTitle").value.trim();
       const body = document.getElementById("annBody").value.trim();
 
@@ -1690,6 +1951,38 @@
       }
     }
 
+    function exportGradesCsv() {
+      const rows = getVisibleGradeRows();
+      if (!rows.length) {
+        showBanner("Барои содирот ҳоло сабти баҳо мавҷуд нест.");
+        return;
+      }
+
+      const header = ["Хонанда", "Синф", "Фан", "Бахо", "Давомот", "Ёддошт", "Муаллим"];
+      const lines = [header.join(",")];
+      rows.forEach((r) => {
+        const vals = [
+          r.studentName || "",
+          r.className || "",
+          r.subject || "",
+          r.score ?? "",
+          r.attendance || "",
+          r.note || "",
+          r.teacherName || ""
+        ].map((v) => `"${String(v).replace(/"/g, '""')}"`);
+        lines.push(vals.join(","));
+      });
+
+      const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "edaftar_grades_report.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      showBanner("Гузориши CSV бо муваффақият боргирӣ шуд!", true);
+    }
+
     function updateKpis() {
       const visibleStudents = Object.entries(studentsCache || {}).filter(([key, st]) =>
         isStudentAllowedForCurrentUser(key, st || {})
@@ -1697,9 +1990,9 @@
       const visibleGrades = getVisibleGradeRows();
 
       document.getElementById("kpiStudents").textContent = String(visibleStudents.length);
-      document.getElementById("kpiStudentsSub").textContent = canManageSchool()
-        ? "Ҳамаи хонандагони сабтшуда"
-        : (getBoundStudentCode() ? `Рамз: ${getBoundStudentCode()}` : "Рамз ворид нашудааст");
+      document.getElementById("kpiStudentsSub").textContent = isTeacher()
+        ? `Синфи ${currentProfile.assignedClass || "—"}`
+        : (isAdmin() ? "Ҳамаи муассисаҳо" : (getBoundStudentCode() ? `Рамз: ${getBoundStudentCode()}` : "Рамз ворид нашудааст"));
 
       if (visibleGrades.length) {
         const sumScore = visibleGrades.reduce((acc, g) => acc + Number(g.score || 0), 0);
@@ -1752,7 +2045,7 @@
           <span class="badge ${weakest.avg < 6 ? "danger" : ""}">Нуқтаи таваҷҷуҳ: ${escapeHtml(weakest.subj)} (${weakest.avg.toFixed(1)}/10)</span>
         </div>
         <p style="font-size:0.86rem; color:#ffffff; margin-bottom:6px;">
-          <strong>Нақшаи худомӯзӣ:</strong> Ин ҳафта 3 машқи такрорӣ ва 25 дақиқа Фокус-таймерро ба фанни <b>${escapeHtml(weakest.subj)}</b> ҷудо кунед.
+          <strong>Қадами тавсиявӣ:</strong> Ин ҳафта 3 машқи такрорӣ ва 25 дақиқа Фокус-таймерро ба фанни <b>${escapeHtml(weakest.subj)}</b> ҷудо кунед.
         </p>
         <p class="muted">Фанни қавӣ: ${escapeHtml(strongest.subj)} (${strongest.avg.toFixed(1)}/10)</p>
       `;
@@ -1858,6 +2151,12 @@
         renderAnnouncements(announcementsCache);
       });
 
+      db.ref("olympiad").on("value", (snap) => {
+        olympiadCache = snap.val() || {};
+        saveLocalCache({ olympiad: olympiadCache });
+        renderOlympiad(olympiadCache);
+      });
+
       db.ref("chat").limitToLast(60).on("value", (snap) => {
         chatCache = snap.val() || {};
         saveLocalCache({ chat: chatCache });
@@ -1872,6 +2171,7 @@
       renderStudents(studentsCache);
       renderStudentSelect(studentsCache);
       renderGrades(gradesCache);
+      renderOlympiad(olympiadCache);
       renderAnnouncements(announcementsCache);
       renderChat(chatCache);
       updateFocusUI();
@@ -1937,7 +2237,9 @@
 
     function renderStudentSelect(data) {
       const select = document.getElementById("grStudentSelect");
-      const entries = Object.entries(data || {});
+      const entries = Object.entries(data || {}).filter(([key, st]) =>
+        isStudentAllowedForCurrentUser(key, st || {})
+      );
       if (!entries.length) {
         select.innerHTML = `<option value="">Аввал хонанда илова кунед</option>`;
         return;
@@ -1972,6 +2274,9 @@
       container.innerHTML = rows.map((r) => {
         const isAbsent = r.attendance === "Ғоиб";
         const isLow = Number(r.score) <= 5;
+        const tip = isAbsent
+          ? "Мавзӯи гузаштаро аз рӯи дафтар ё маводи дарсӣ такрор кунед."
+          : (isLow ? `Барои баланд бардоштани баҳо аз фанни "${r.subject || "дарс"}" 2 машқи иловагӣ иҷро шавад.` : "");
         return `
           <div class="item">
             <div class="item-top">
@@ -1982,10 +2287,42 @@
               </div>
             </div>
             ${r.note ? `<p style="font-size:0.86rem; color:#ffffff; margin:4px 0;">Ёддошт: ${escapeHtml(r.note)}</p>` : ""}
-            <div class="muted">Муаллим: ${escapeHtml(r.teacherName || "—")} • ${escapeHtml(formatDateTime(r.createdAt))}</div>
+            ${tip ? `<div class="action-tip">Тавсия: ${escapeHtml(tip)}</div>` : ""}
+            <div class="muted" style="margin-top:4px;">Муаллим: ${escapeHtml(r.teacherName || "—")} • ${escapeHtml(formatDateTime(r.createdAt))}</div>
           </div>
         `;
       }).join("");
+    }
+
+    function renderOlympiad(data) {
+      const container = document.getElementById("olympiadList");
+      const canManage = canManageSchool();
+
+      const rows = Object.entries(data || {})
+        .map(([taskId, item]) => ({ ...item, taskId }))
+        .filter((item) => isClassAllowedForCurrentUser(item.className, item.school))
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      if (!rows.length) {
+        container.innerHTML = `<p class="muted">Ҳоло супориш ё мусобиқаи олимпиада сабт нашудааст.</p>`;
+        return;
+      }
+
+      container.innerHTML = rows.map((t) => `
+        <div class="item">
+          <div class="item-top">
+            <strong>${escapeHtml(t.title)}</strong>
+            <div class="item-actions">
+              <span class="badge">${escapeHtml(t.className || "Синф")} • ${escapeHtml(t.level || "Озмун")}</span>
+              <span class="badge ${t.completed ? "ok" : "white"}">${t.completed ? "Иҷро шуд" : "Дар ҷараён"}</span>
+              <button type="button" class="btn-outline btn-sm" onclick="toggleOlympiadDone('${escapeHtml(t.taskId)}', ${Boolean(t.completed)})">${t.completed ? "Боз кардан" : "Қайди иҷро"}</button>
+              ${canManage ? `<button type="button" class="btn-danger btn-sm" onclick="handleDeleteOlympiadTask('${escapeHtml(t.taskId)}')">Пок кардан</button>` : ""}
+            </div>
+          </div>
+          <p style="margin:6px 0;">${escapeHtml(t.description)}</p>
+          <div class="muted">Мӯҳлат: ${escapeHtml(t.deadline || "—")} • Роҳбар: ${escapeHtml(t.author || "—")}</div>
+        </div>
+      `).join("");
     }
 
     function renderAnnouncements(data) {
@@ -1994,7 +2331,7 @@
 
       const rows = Object.entries(data || {})
         .map(([annId, item]) => ({ ...item, annId }))
-        .filter((item) => isAnnouncementAllowedForCurrentUser(item))
+        .filter((item) => isClassAllowedForCurrentUser(item.className, item.school))
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
       if (!rows.length) {
