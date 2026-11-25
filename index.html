@@ -455,8 +455,9 @@
         </div>
 
         <div class="field">
-          <label for="emailInput">Почтаи электронӣ (Email)</label>
+          <label for="emailInput">Почтаи электронии ҳақиқӣ (Email)</label>
           <input id="emailInput" type="email" required placeholder="name@gmail.com" />
+          <p class="muted" style="margin-top:4px;">Ҳар як Email танҳо як маротиба барои 1 аккаунт истифода мешавад ва бояд тасдиқ шавад.</p>
         </div>
 
         <div class="field">
@@ -491,7 +492,6 @@
         <button type="button" class="btn-outline" data-tab="chat" onclick="switchSection('chat', this)">Чат</button>
       </div>
 
-      <!-- ПАНЕЛИ ҲИМОЯИ ВОЛИДАЙН / ХОНАНДА -->
       <div id="parentBindPanel" class="card hidden">
         <h3>Пайвастшавӣ ба талаба (Волидайн / Хонанда)</h3>
         <p class="muted" style="margin-bottom:10px;">
@@ -504,7 +504,6 @@
         <p id="boundStudentInfo" class="muted" style="margin-top:8px;"></p>
       </div>
 
-      <!-- 0. ПАНЕЛИ ИНТЕЛЛЕКТУАЛӢ (БАРТАРИҲОИ БЕНАЗИР АЗ e-ДОНИШ) -->
       <div id="sec-smart" class="card">
         <div class="item-top" style="margin-bottom:14px;">
           <div>
@@ -541,7 +540,6 @@
         </div>
       </div>
 
-      <!-- 1. ХОНАНДАГОН -->
       <div id="sec-students" class="card hidden">
         <div class="item-top" style="margin-bottom:12px;">
           <h2 id="studentsTitle" style="margin:0;">Рӯйхати хонандагон</h2>
@@ -601,7 +599,6 @@
         <div id="studentsList"></div>
       </div>
 
-      <!-- 2. БАҲО (1-10) ВА ДАВОМОТ -->
       <div id="sec-grades" class="card hidden">
         <h2 id="gradesTitle">Баҳогузорӣ (1–10) ва Давомот</h2>
 
@@ -672,7 +669,6 @@
         <div id="gradesList"></div>
       </div>
 
-      <!-- 3. ЭЪЛОНҲО -->
       <div id="sec-announcements" class="card hidden">
         <div class="item-top" style="margin-bottom:12px;">
           <h2 id="announcementsTitle" style="margin:0;">Эълонҳои синфӣ</h2>
@@ -707,7 +703,6 @@
         <div id="announcementsList"></div>
       </div>
 
-      <!-- 4. ЧАТ -->
       <div id="sec-chat" class="card hidden">
         <h2>Чати умумӣ / мактабӣ</h2>
         <div id="chatBox" class="chat-box"></div>
@@ -735,7 +730,6 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    /* ---------- ОФЛАЙН-БУФЕР ВА НИГОҲДОРИИ ЛОКАЛӢ ---------- */
     const STORAGE_CACHE_KEY = "edaftar_offline_cache_v1";
     const STORAGE_QUEUE_KEY = "edaftar_offline_queue_v1";
 
@@ -833,7 +827,6 @@
       showBanner("Алоқаи интернет қатъ шуд. Барнома ба режими Офлайн-буфер гузашт.");
     });
 
-    /* ---------- ФУНКСИЯҲОИ ЁРИРАСОН ---------- */
     function safeKey(raw, fallback = "item") {
       const val = String(raw ?? "")
         .trim()
@@ -975,7 +968,6 @@
       return classMatch && schoolMatch;
     }
 
-    /* ---------- АВТОРИЗАТСИЯ ---------- */
     function switchAuthMode(mode) {
       authMode = mode;
       const isReg = mode === "register";
@@ -991,7 +983,7 @@
       e.preventDefault();
       hideBanner();
 
-      const email = document.getElementById("emailInput").value.trim();
+      const email = document.getElementById("emailInput").value.trim().toLowerCase();
       const password = document.getElementById("passwordInput").value;
 
       try {
@@ -1023,6 +1015,7 @@
             school,
             boundStudentCode,
             email,
+            emailVerified: false,
             createdAt: Date.now()
           });
 
@@ -1030,12 +1023,31 @@
             await cred.user.sendEmailVerification();
           } catch (_) {}
 
-          showBanner("Аккаунт сохта шуд! Линки тасдиқ ба почтаи шумо фиристода шуд.", true);
+          await auth.signOut();
+          switchAuthMode("login");
+          showBanner("Аккаунт сохта шуд! Лутфан ба почтаи Email-и худ даромада, линки тасдиқро пахш кунед ва баъд ворид шавед.", true);
         } else {
-          await auth.signInWithEmailAndPassword(email, password);
+          const cred = await auth.signInWithEmailAndPassword(email, password);
+          await cred.user.reload();
+
+          if (!cred.user.emailVerified) {
+            try {
+              await cred.user.sendEmailVerification();
+            } catch (_) {}
+            await auth.signOut();
+            showBanner("Email-и шумо ҳанӯз тасдиқ нашудааст! Линки тасдиқ ба почтаатон фиристода шуд (ё папкаи Spam-ро бинед).");
+            return;
+          }
+
+          const uid = safeKey(cred.user.uid, "user");
+          await db.ref(`users/${uid}/emailVerified`).set(true);
         }
       } catch (err) {
-        showBanner("Хатогӣ: " + (err.message || err));
+        if (err && err.code === "auth/email-already-in-use") {
+          showBanner("Ин Email аллакай дар система истифода шудааст. Ҳар як Email танҳо як аккаунт сохта метавонад.");
+        } else {
+          showBanner("Хатогӣ: " + (err.message || err));
+        }
       }
     }
 
@@ -1116,7 +1128,7 @@
     auth.onAuthStateChanged(async (user) => {
       updateNetworkStatusUI();
 
-      if (!user) {
+      if (!user || !user.emailVerified) {
         currentUser = null;
         document.getElementById("authSection").classList.remove("hidden");
         document.getElementById("appSection").classList.add("hidden");
@@ -1132,6 +1144,9 @@
           currentProfile = snap.exists()
             ? snap.val()
             : { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+          if (!currentProfile.fullName) {
+            currentProfile.fullName = (user.email || "Корбар").split("@")[0];
+          }
           saveLocalCache({ profile: currentProfile });
         } catch (_) {
           currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
@@ -1170,7 +1185,6 @@
       if (btnEl) btnEl.classList.add("active");
     }
 
-    /* ---------- АМАЛҲО БО ДАСТГИРИИ ОФЛАЙН-БУФЕР ---------- */
     async function handleAddStudent(e) {
       e.preventDefault();
       hideBanner();
@@ -1415,7 +1429,6 @@
       }
     }
 
-    /* ---------- ТАҲЛИЛИ ИНТЕЛЛЕКТУАЛӢ (ТАШХИС ВА РАДАРИ ХАТАР) ---------- */
     function renderSmartAnalytics() {
       const weakSpotBox = document.getElementById("weakSpotBox");
       const riskRadarBox = document.getElementById("riskRadarBox");
@@ -1498,7 +1511,6 @@
       }
     }
 
-    /* ---------- ФОКУС-ТАЙМЕРИ ОМОДАГӢ БА ДАРС ---------- */
     const FOCUS_TOTAL_SECONDS = 25 * 60;
     let focusRemaining = FOCUS_TOTAL_SECONDS;
     let focusInterval = null;
@@ -1546,7 +1558,6 @@
       updateFocusUI();
     }
 
-    /* ---------- ШУНАВАНДАГОНИ РЕАЛӢ ---------- */
     let listenersStarted = false;
 
     function startRealtimeListeners() {
