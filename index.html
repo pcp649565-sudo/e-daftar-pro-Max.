@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>e-Дафтар Pro Max — Системаи Интеллектуалии Омӯзиш</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #070708;
+      --bg-card: #111114;
+      --bg-elevated: #18181d;
+      --border: #27272f;
+      --text-white: #ffffff;
+      --text-muted: #a1a1aa;
+      --orange: #ff6b00;
+      --orange-bright: #ff8c24;
+      --orange-soft: rgba(255, 107, 0, 0.14);
+      --orange-glow: rgba(255, 107, 0, 0.35);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.15);
+      --ok: #22c55e;
+      --ok-soft: rgba(34, 197, 94, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg-main);
+      color: var(--text-white);
+      min-height: 100vh;
+      line-height: 1.5;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: -30%;
+      left: -20%;
+      width: 140%;
+      height: 160%;
+      background:
+        radial-gradient(circle at 20% 25%, rgba(255, 107, 0, 0.14), transparent 40%),
+        radial-gradient(circle at 80% 75%, rgba(255, 255, 255, 0.05), transparent 45%);
+      animation: bgPulse 9s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    @keyframes bgPulse {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(2%, -2%) scale(1.06); }
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.35); opacity: 0.6; }
+    }
+
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      animation: fadeSlideUp 0.35s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #111114 0%, #191512 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      animation: fadeSlideUp 0.3s ease;
+    }
+
+    .brand h1 {
+      font-size: 1.4rem;
+      color: var(--text-white);
+      letter-spacing: 0.3px;
+    }
+
+    .brand h1 span {
+      color: var(--orange);
+    }
+
+    .brand p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: var(--orange-soft);
+      color: var(--orange-bright);
+      border: 1px solid rgba(255, 107, 0, 0.4);
+    }
+
+    .badge.white {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-white);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .badge.danger {
+      background: var(--danger-soft);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .badge.ok {
+      background: var(--ok-soft);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.4);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulseDot 1.6s infinite;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 12px;
+      color: var(--text-white);
+    }
+
+    h3 {
+      font-size: 0.98rem;
+      margin-bottom: 10px;
+      color: var(--orange-bright);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text-white);
+      font-size: 0.94rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px var(--orange-soft);
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 15px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-orange {
+      background: var(--orange);
+      color: #070708;
+      box-shadow: 0 4px 16px var(--orange-glow);
+    }
+
+    .btn-orange:hover {
+      background: var(--orange-bright);
+    }
+
+    .btn-white {
+      background: var(--text-white);
+      color: #070708;
+    }
+
+    .btn-white:hover {
+      background: #e4e4e7;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: var(--text-white);
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    .btn-outline {
+      background: var(--bg-card);
+      color: var(--text-white);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--orange);
+    }
+
+    .btn-outline.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #070708;
+      box-shadow: 0 0 18px var(--orange-glow);
+    }
+
+    .item {
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      padding: 13px;
+      margin-bottom: 10px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .item:hover {
+      border-color: rgba(255, 107, 0, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .item-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .muted {
+      color: var(--text-muted);
+      font-size: 0.84rem;
+    }
+
+    .chat-box {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .msg {
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: #111114;
+      border-left: 3px solid var(--orange);
+      margin-bottom: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .status-banner {
+      padding: 11px 14px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      background: var(--danger-soft);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fecaca;
+      animation: fadeSlideUp 0.25s ease;
+    }
+
+    .status-banner.ok {
+      background: var(--orange-soft);
+      border-color: rgba(255, 107, 0, 0.55);
+      color: #ffffff;
+    }
+
+    .timer-display {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: var(--text-white);
+      letter-spacing: 2px;
+      text-align: center;
+      padding: 12px;
+      border-radius: 12px;
+      background: #0b0b0d;
+      border: 1px solid var(--orange);
+      margin: 10px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #27272f;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--orange), #ffffff);
+      transition: width 0.35s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="globalAlert" class="status-banner hidden"></div>
+
+    <!-- ВОРИДШАВӢ ВА РЕГИСТРАТСИЯ -->
+    <div id="authSection" class="card" style="max-width: 490px; margin: 24px auto;">
+      <div style="text-align:center; margin-bottom:16px;">
+        <span class="badge" style="margin-bottom:8px;">Платформаи Интеллектуалии Омӯзиш</span>
+        <h1 style="font-size:1.75rem;">e-Дафтар <span style="color:var(--orange);">Pro Max</span></h1>
+        <p class="muted">Ташхиси автоматии дониш, радари хатар ва офлайн-ҳамоҳангсозӣ</p>
+      </div>
+
+      <div class="tabs">
+        <button id="tabLogin" type="button" class="btn-outline active" onclick="switchAuthMode('login')">Воридшавӣ</button>
+        <button id="tabRegister" type="button" class="btn-outline" onclick="switchAuthMode('register')">Регистратсия</button>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <div id="registerFields" class="hidden">
+          <div class="field">
+            <label for="fullNameInput">Ному насаби пурра</label>
+            <input id="fullNameInput" type="text" placeholder="Масалан: Камолдинов Анушервон" />
+          </div>
+
+          <div class="field">
+            <label for="roleInput">Нақш (Role)</label>
+            <select id="roleInput" onchange="toggleRegisterRoleFields()">
+              <option value="student">Хонанда / Волидайн (Student/Parent)</option>
+              <option value="teacher">Муаллим (Teacher)</option>
+              <option value="admin">Админ (Admin)</option>
+            </select>
+          </div>
+
+          <div id="regChildCodeField" class="field">
+            <label for="childCodeInput">Рамз / ID талаба (барои волидайн/хонанда)</label>
+            <input id="childCodeInput" type="text" placeholder="Масалан: ST-2010" />
+            <p class="muted" style="margin-top:4px;">Волидайн танҳо баҳо, ташхис ва эълони синфи талабаи худро мебинанд.</p>
+          </div>
+
+          <div class="field">
+            <label for="schoolSelect">Муассиса / Мактаб (Тоҷикистон)</label>
+            <select id="schoolSelect" onchange="toggleCustomInput('schoolSelect', 'regCustomSchoolField', 'schoolCustomInput')">
+              <option value="Маркази Таҳсилоти Иловагӣ">Маркази Таҳсилоти Иловагӣ</option>
+              <option value="Гимназия №5">Гимназия №5</option>
+              <option value="МТМУ №1 ш. Душанбе">МТМУ №1 ш. Душанбе</option>
+              <option value="МТМУ №2 ш. Душанбе">МТМУ №2 ш. Душанбе</option>
+              <option value="МТМУ №5 ш. Душанбе">МТМУ №5 ш. Душанбе</option>
+              <option value="МТМУ №8 ш. Душанбе">МТМУ №8 ш. Душанбе</option>
+              <option value="МТМУ №10 ш. Душанбе">МТМУ №10 ш. Душанбе</option>
+              <option value="МТМУ №20 ш. Душанбе">МТМУ №20 ш. Душанбе</option>
+              <option value="МТМУ №1 ш. Хуҷанд (вилояти Суғд)">МТМУ №1 ш. Хуҷанд (вилояти Суғд)</option>
+              <option value="МТМУ №1 ш. Бохтар (вилояти Хатлон)">МТМУ №1 ш. Бохтар (вилояти Хатлон)</option>
+              <option value="МТМУ №1 ш. Кӯлоб (вилояти Хатлон)">МТМУ №1 ш. Кӯлоб (вилояти Хатлон)</option>
+              <option value="МТМУ №1 ш. Хоруғ (ВМКБ)">МТМУ №1 ш. Хоруғ (ВМКБ)</option>
+              <option value="МТМУ №1 ш. Ваҳдат (НТМ)">МТМУ №1 ш. Ваҳдат (НТМ)</option>
+              <option value="МТМУ №1 ш. Ҳисор (НТМ)">МТМУ №1 ш. Ҳисор (НТМ)</option>
+              <option value="МТМУ №1 ш. Турсунзода (НТМ)">МТМУ №1 ш. Турсунзода (НТМ)</option>
+              <option value="__custom__">Муассисаи дигар (дастӣ нависед)</option>
+            </select>
+          </div>
+
+          <div id="regCustomSchoolField" class="field hidden">
+            <label for="schoolCustomInput">Номи муассиса / мактаб</label>
+            <input id="schoolCustomInput" type="text" placeholder="Номи муассиса ё мактабро нависед..." />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="emailInput">Почтаи электронӣ (Email)</label>
+          <input id="emailInput" type="email" required placeholder="name@gmail.com" />
+        </div>
+
+        <div class="field">
+          <label for="passwordInput">Парол (ҳадди ақал 6 аломат)</label>
+          <input id="passwordInput" type="password" required minlength="6" placeholder="••••••••" />
+        </div>
+
+        <button id="authSubmitBtn" type="submit" class="btn-orange" style="width:100%;">Ворид шудан</button>
+      </form>
+    </div>
+
+    <!-- КАБИНЕТИ АСОСӢ -->
+    <div id="appSection" class="hidden">
+      <div class="topbar">
+        <div class="brand">
+          <h1>e-Дафтар <span>Pro Max</span></h1>
+          <p id="userMeta">Корбар: —</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span id="networkBadge" class="badge ok"><span class="dot"></span> Онлайн</span>
+          <button id="syncQueueBtn" type="button" class="btn-white btn-sm hidden" onclick="syncOfflineQueue()">Ҳамоҳангсозӣ (0)</button>
+          <span id="roleBadge" class="badge">ROLE</span>
+          <button type="button" class="btn-danger btn-sm" onclick="handleLogout()">Баромад</button>
+        </div>
+      </div>
+
+      <div class="nav-tabs">
+        <button type="button" class="btn-outline active" data-tab="smart" onclick="switchSection('smart', this)">Панели Интеллектуалӣ</button>
+        <button type="button" class="btn-outline" data-tab="students" onclick="switchSection('students', this)">Хонандагон</button>
+        <button type="button" class="btn-outline" data-tab="grades" onclick="switchSection('grades', this)">Баҳо (1–10) ва Давомот</button>
+        <button type="button" class="btn-outline" data-tab="announcements" onclick="switchSection('announcements', this)">Эълонҳо</button>
+        <button type="button" class="btn-outline" data-tab="chat" onclick="switchSection('chat', this)">Чат</button>
+      </div>
+
+      <!-- ПАНЕЛИ ҲИМОЯИ ВОЛИДАЙН / ХОНАНДА -->
+      <div id="parentBindPanel" class="card hidden">
+        <h3>Пайвастшавӣ ба талаба (Волидайн / Хонанда)</h3>
+        <p class="muted" style="margin-bottom:10px;">
+          Рамзи хонандаро (масалан <code>ST-2010</code>) ворид кунед, то ташхиси дониш, баҳоҳо ва эълонҳои синфи худро бинед.
+        </p>
+        <form onsubmit="handleBindStudentCode(event)" style="display:flex; gap:8px; flex-wrap:wrap;">
+          <input id="bindCodeInput" type="text" required placeholder="Рамз / ID талаба (масалан: ST-2010)" style="flex:1; min-width:220px;" />
+          <button type="submit" class="btn-orange">Тасдиқ ва ҳифз</button>
+        </form>
+        <p id="boundStudentInfo" class="muted" style="margin-top:8px;"></p>
+      </div>
+
+      <!-- 0. ПАНЕЛИ ИНТЕЛЛЕКТУАЛӢ (БАРТАРИҲОИ БЕНАЗИР АЗ e-ДОНИШ) -->
+      <div id="sec-smart" class="card">
+        <div class="item-top" style="margin-bottom:14px;">
+          <div>
+            <h2 style="margin:0;">Панели Интеллектуалӣ ва Таҳлили Фаврӣ</h2>
+            <p class="muted">Хусусиятҳои пешрафта: Ташхиси нуқтаи заиф, Радари хатар ва Фокус-таймер</p>
+          </div>
+          <span class="badge white">AI-Таҳлил</span>
+        </div>
+
+        <div class="grid-3">
+          <div class="item">
+            <h3>1. Ташхиси нуқтаи заиф</h3>
+            <div id="weakSpotBox" class="muted">Маълумот таҳлил шуда истодааст...</div>
+          </div>
+
+          <div class="item">
+            <h3>2. Радари хатар (Пешгӯии бармаҳал)</h3>
+            <div id="riskRadarBox" class="muted">Ҳолати хонандагон санҷида мешавад...</div>
+          </div>
+
+          <div class="item">
+            <h3>3. Фокус-таймери омодагӣ ба дарс</h3>
+            <div class="field" style="margin-bottom:6px;">
+              <input id="focusSubjectInput" type="text" placeholder="Фан (масалан: Алгебра / Информатика)" />
+            </div>
+            <div id="focusTimerText" class="timer-display">25:00</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="btn-orange btn-sm" style="flex:1;" onclick="toggleFocusTimer()">Оғоз / Таваққуф</button>
+              <button type="button" class="btn-white btn-sm" onclick="resetFocusTimer()">Аз нав</button>
+            </div>
+            <div class="progress-bar"><div id="focusProgress" class="progress-fill" style="width: 100%;"></div></div>
+            <p id="focusSessionsText" class="muted" style="margin-top:8px;">Ҷаласаҳои имрӯза: 0 дақиқа</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. ХОНАНДАГОН -->
+      <div id="sec-students" class="card hidden">
+        <div class="item-top" style="margin-bottom:12px;">
+          <h2 id="studentsTitle" style="margin:0;">Рӯйхати хонандагон</h2>
+          <span id="studentsCountBadge" class="badge">0 хонанда</span>
+        </div>
+
+        <div id="addStudentPanel" class="item hidden" style="margin-bottom:14px;">
+          <h3>Илова кардани хонандаи нав</h3>
+          <form id="addStudentForm" onsubmit="handleAddStudent(event)">
+            <div class="grid-2">
+              <div class="field">
+                <label for="stName">Ному насаби хонанда</label>
+                <input id="stName" type="text" required placeholder="Ному насаб" />
+              </div>
+
+              <div class="field">
+                <label for="stSchoolSelect">Мактаб / Муассиса (Тоҷикистон)</label>
+                <select id="stSchoolSelect" onchange="toggleCustomInput('stSchoolSelect', 'stCustomSchoolField', 'stSchoolCustom')">
+                  <option value="Маркази Таҳсилоти Иловагӣ">Маркази Таҳсилоти Иловагӣ</option>
+                  <option value="Гимназия №5">Гимназия №5</option>
+                  <option value="МТМУ №1 ш. Душанбе">МТМУ №1 ш. Душанбе</option>
+                  <option value="МТМУ №2 ш. Душанбе">МТМУ №2 ш. Душанбе</option>
+                  <option value="МТМУ №5 ш. Душанбе">МТМУ №5 ш. Душанбе</option>
+                  <option value="МТМУ №8 ш. Душанбе">МТМУ №8 ш. Душанбе</option>
+                  <option value="МТМУ №10 ш. Душанбе">МТМУ №10 ш. Душанбе</option>
+                  <option value="МТМУ №20 ш. Душанбе">МТМУ №20 ш. Душанбе</option>
+                  <option value="МТМУ №1 ш. Хуҷанд (вилояти Суғд)">МТМУ №1 ш. Хуҷанд (вилояти Суғд)</option>
+                  <option value="МТМУ №1 ш. Бохтар (вилояти Хатлон)">МТМУ №1 ш. Бохтар (вилояти Хатлон)</option>
+                  <option value="МТМУ №1 ш. Кӯлоб (вилояти Хатлон)">МТМУ №1 ш. Кӯлоб (вилояти Хатлон)</option>
+                  <option value="МТМУ №1 ш. Хоруғ (ВМКБ)">МТМУ №1 ш. Хоруғ (ВМКБ)</option>
+                  <option value="МТМУ №1 ш. Ваҳдат (НТМ)">МТМУ №1 ш. Ваҳдат (НТМ)</option>
+                  <option value="МТМУ №1 ш. Ҳисор (НТМ)">МТМУ №1 ш. Ҳисор (НТМ)</option>
+                  <option value="МТМУ №1 ш. Турсунзода (НТМ)">МТМУ №1 ш. Турсунзода (НТМ)</option>
+                  <option value="__custom__">Муассисаи дигар (дастӣ нависед)</option>
+                </select>
+              </div>
+
+              <div id="stCustomSchoolField" class="field hidden">
+                <label for="stSchoolCustom">Номи мактаб / муассисаи дигар</label>
+                <input id="stSchoolCustom" type="text" placeholder="Номи муассисаро нависед..." />
+              </div>
+
+              <div class="field">
+                <label for="stClass">Синф</label>
+                <input id="stClass" type="text" required placeholder="Масалан: 9-А" />
+              </div>
+
+              <div class="field">
+                <label for="stCode">Рамз / ID хонанда (барои волидайн)</label>
+                <input id="stCode" type="text" placeholder="Масалан: ST-2010" />
+              </div>
+            </div>
+            <button type="submit" class="btn-orange">Сабт кардани хонанда</button>
+          </form>
+        </div>
+
+        <div id="studentsList"></div>
+      </div>
+
+      <!-- 2. БАҲО (1-10) ВА ДАВОМОТ -->
+      <div id="sec-grades" class="card hidden">
+        <h2 id="gradesTitle">Баҳогузорӣ (1–10) ва Давомот</h2>
+
+        <div id="gradeFormPanel" class="item hidden" style="margin-bottom:14px;">
+          <h3>Гузоштани баҳо, давомот ва ёддошти фаврӣ</h3>
+          <form id="gradeForm" onsubmit="handleSaveGrade(event)">
+            <div class="grid-2">
+              <div class="field">
+                <label for="grStudentSelect">Хонанда</label>
+                <select id="grStudentSelect" required></select>
+              </div>
+
+              <div class="field">
+                <label for="grSubjectSelect">Фан (Тоҷикистон)</label>
+                <select id="grSubjectSelect" required onchange="toggleCustomInput('grSubjectSelect', 'customSubjectField', 'grSubjectCustom')">
+                  <option value="Забони тоҷикӣ">Забони тоҷикӣ</option>
+                  <option value="Адабиёти тоҷик">Адабиёти тоҷик</option>
+                  <option value="Забони русӣ">Забони русӣ</option>
+                  <option value="Адабиёти рус">Адабиёти рус</option>
+                  <option value="Забони англисӣ">Забони англисӣ</option>
+                  <option value="Математика">Математика</option>
+                  <option value="Алгебра">Алгебра</option>
+                  <option value="Геометрия">Геометрия</option>
+                  <option value="Информатика">Информатика</option>
+                  <option value="Физика">Физика</option>
+                  <option value="Химия">Химия</option>
+                  <option value="Биология">Биология</option>
+                  <option value="География">География</option>
+                  <option value="Таърихи халқи тоҷик">Таърихи халқи тоҷик</option>
+                  <option value="Таърихи умумӣ">Таърихи умумӣ</option>
+                  <option value="Ҳуқуқи инсон / Асосҳои давлат ва ҳуқуқ">Ҳуқуқи инсон / Асосҳои давлат ва ҳуқуқ</option>
+                  <option value="Технологияи иттилоотӣ / Меҳнат">Технологияи иттилоотӣ / Меҳнат</option>
+                  <option value="Тарбияи ҷисмонӣ">Тарбияи ҷисмонӣ</option>
+                  <option value="Санъати тасвирӣ / Нақшакашӣ">Санъати тасвирӣ / Нақшакашӣ</option>
+                  <option value="Мусиқӣ / Фарҳанг">Мусиқӣ / Фарҳанг</option>
+                  <option value="__custom__">Фанни дигар (дастӣ)</option>
+                </select>
+              </div>
+
+              <div id="customSubjectField" class="field hidden">
+                <label for="grSubjectCustom">Номи фанни дигар</label>
+                <input id="grSubjectCustom" type="text" placeholder="Номи фанро нависед..." />
+              </div>
+
+              <div class="field">
+                <label for="grScore">Баҳо (аз 1 то 10)</label>
+                <input id="grScore" type="number" min="1" max="10" required placeholder="1 - 10" />
+              </div>
+
+              <div class="field">
+                <label for="grAttendance">Давомот</label>
+                <select id="grAttendance">
+                  <option value="Ҳозир">Ҳозир</option>
+                  <option value="Ғоиб">Ғоиб</option>
+                  <option value="Дер кард">Дер кард</option>
+                </select>
+              </div>
+
+              <div class="field" style="grid-column: 1 / -1;">
+                <label for="grNote">Ёддошти кӯтоҳ ба баҳо (Пули муколама бо волидайн)</label>
+                <input id="grNote" type="text" placeholder="Масалан: Барои олимпиада хуб тайёр шуд / Мавзӯи муодилаҳоро такрор кунад" />
+              </div>
+            </div>
+            <button type="submit" class="btn-orange">Сабти баҳо ва давомот</button>
+          </form>
+        </div>
+
+        <div id="gradesList"></div>
+      </div>
+
+      <!-- 3. ЭЪЛОНҲО -->
+      <div id="sec-announcements" class="card hidden">
+        <div class="item-top" style="margin-bottom:12px;">
+          <h2 id="announcementsTitle" style="margin:0;">Эълонҳои синфӣ</h2>
+          <span id="announcementsClassBadge" class="badge">Эълонҳо</span>
+        </div>
+
+        <div id="announcementPanel" class="item hidden" style="margin-bottom:14px;">
+          <h3>Навиштани эълон</h3>
+          <form id="announcementForm" onsubmit="handleAddAnnouncement(event)">
+            <div class="grid-2">
+              <div class="field">
+                <label for="annSchoolInput">Номи мактаб / муассиса</label>
+                <input id="annSchoolInput" type="text" required placeholder="Масалан: Маркази Таҳсилоти Иловагӣ" />
+              </div>
+              <div class="field">
+                <label for="annClassInput">Синф</label>
+                <input id="annClassInput" type="text" required placeholder="Масалан: 9-А" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="annTitle">Сарлавҳа</label>
+              <input id="annTitle" type="text" required placeholder="Сарлавҳаи эълон" />
+            </div>
+            <div class="field">
+              <label for="annBody">Матни эълон</label>
+              <textarea id="annBody" rows="3" required placeholder="Матни эълон..."></textarea>
+            </div>
+            <button type="submit" class="btn-orange">Интишори эълон</button>
+          </form>
+        </div>
+
+        <div id="announcementsList"></div>
+      </div>
+
+      <!-- 4. ЧАТ -->
+      <div id="sec-chat" class="card hidden">
+        <h2>Чати умумӣ / мактабӣ</h2>
+        <div id="chatBox" class="chat-box"></div>
+        <form id="chatForm" onsubmit="handleSendMessage(event)" style="display:flex; gap:8px;">
+          <input id="chatInput" type="text" required placeholder="Паём нависед..." />
+          <button type="submit" class="btn-orange">Фиристодан</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzXu7p_6zQwmdH1KpxVTgj6_O3RMzSMcw",
+      authDomain: "edaftar-pro-max.firebaseapp.com",
+      databaseURL: "https://edaftar-pro-max-default-rtdb.firebaseio.com",
+      projectId: "edaftar-pro-max",
+      storageBucket: "edaftar-pro-max.firebasestorage.app",
+      messagingSenderId: "647994267390",
+      appId: "1:647994267390:web:ce8431a4cf77c5c3ceb7af",
+      measurementId: "G-C4JSV52YEY"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    /* ---------- ОФЛАЙН-БУФЕР ВА НИГОҲДОРИИ ЛОКАЛӢ ---------- */
+    const STORAGE_CACHE_KEY = "edaftar_offline_cache_v1";
+    const STORAGE_QUEUE_KEY = "edaftar_offline_queue_v1";
+
+    function loadLocalCache() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_CACHE_KEY)) || {};
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveLocalCache(partial) {
+      try {
+        const current = loadLocalCache();
+        localStorage.setItem(STORAGE_CACHE_KEY, JSON.stringify({ ...current, ...partial }));
+      } catch (_) {}
+    }
+
+    function getOfflineQueue() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_QUEUE_KEY)) || [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function pushOfflineQueue(action) {
+      const q = getOfflineQueue();
+      q.push({ ...action, queuedAt: Date.now() });
+      localStorage.setItem(STORAGE_QUEUE_KEY, JSON.stringify(q));
+      updateNetworkStatusUI();
+    }
+
+    async function syncOfflineQueue() {
+      const q = getOfflineQueue();
+      if (!q.length) return;
+      if (!navigator.onLine) {
+        showBanner("Интернет ҳанӯз пайваст нест. Маълумот дар буфер нигоҳ дошта мешавад.");
+        return;
+      }
+
+      const remaining = [];
+      let syncedCount = 0;
+
+      for (const item of q) {
+        try {
+          if (item.type === "set") {
+            await db.ref(item.path).set(item.payload);
+            syncedCount++;
+          } else if (item.type === "push") {
+            await db.ref(item.path).push(item.payload);
+            syncedCount++;
+          }
+        } catch (_) {
+          remaining.push(item);
+        }
+      }
+
+      localStorage.setItem(STORAGE_QUEUE_KEY, JSON.stringify(remaining));
+      updateNetworkStatusUI();
+
+      if (syncedCount > 0) {
+        showBanner(`${syncedCount} амали офлайн бо Firebase ҳамоҳанг карда шуд!`, true);
+      }
+    }
+
+    function updateNetworkStatusUI() {
+      const badge = document.getElementById("networkBadge");
+      const syncBtn = document.getElementById("syncQueueBtn");
+      const qLen = getOfflineQueue().length;
+
+      if (navigator.onLine) {
+        badge.className = "badge ok";
+        badge.innerHTML = `<span class="dot"></span> Онлайн`;
+      } else {
+        badge.className = "badge danger";
+        badge.innerHTML = `<span class="dot"></span> Офлайн-буфер`;
+      }
+
+      if (qLen > 0) {
+        syncBtn.classList.remove("hidden");
+        syncBtn.textContent = `Ҳамоҳангсозӣ (${qLen})`;
+      } else {
+        syncBtn.classList.add("hidden");
+      }
+    }
+
+    window.addEventListener("online", () => {
+      updateNetworkStatusUI();
+      syncOfflineQueue();
+    });
+
+    window.addEventListener("offline", () => {
+      updateNetworkStatusUI();
+      showBanner("Алоқаи интернет қатъ шуд. Барнома ба режими Офлайн-буфер гузашт.");
+    });
+
+    /* ---------- ФУНКСИЯҲОИ ЁРИРАСОН ---------- */
+    function safeKey(raw, fallback = "item") {
+      const val = String(raw ?? "")
+        .trim()
+        .replace(/[.#$\[\]\/]/g, "_")
+        .replace(/\s+/g, "_");
+      return val || fallback;
+    }
+
+    function normalizeCode(raw) {
+      return String(raw ?? "").trim().toUpperCase();
+    }
+
+    function normalizeClass(raw) {
+      return String(raw ?? "").trim().toUpperCase();
+    }
+
+    function normalizeSchool(raw) {
+      return String(raw ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function showBanner(msg, isOk = false) {
+      const el = document.getElementById("globalAlert");
+      el.textContent = msg;
+      el.className = isOk ? "status-banner ok" : "status-banner";
+      el.classList.remove("hidden");
+    }
+
+    function hideBanner() {
+      document.getElementById("globalAlert").classList.add("hidden");
+    }
+
+    function toggleCustomInput(selectId, fieldId, inputId) {
+      const sel = document.getElementById(selectId);
+      const field = document.getElementById(fieldId);
+      const input = document.getElementById(inputId);
+      const isCustom = sel.value === "__custom__";
+      field.classList.toggle("hidden", !isCustom);
+      input.required = isCustom;
+      if (!isCustom) input.value = "";
+    }
+
+    function toggleRegisterRoleFields() {
+      const role = document.getElementById("roleInput").value;
+      document.getElementById("regChildCodeField").classList.toggle("hidden", role !== "student");
+    }
+
+    function resolveSelectOrCustom(selectId, customInputId, fallback = "") {
+      const selVal = document.getElementById(selectId).value;
+      if (selVal === "__custom__") {
+        return document.getElementById(customInputId).value.trim() || fallback;
+      }
+      return selVal || fallback;
+    }
+
+    let authMode = "login";
+    let currentUser = null;
+    let currentProfile = {
+      fullName: "Корбар",
+      role: "student",
+      school: "",
+      boundStudentCode: ""
+    };
+
+    const cached = loadLocalCache();
+    let studentsCache = cached.students || {};
+    let gradesCache = cached.grades || {};
+    let announcementsCache = cached.announcements || {};
+    let chatCache = cached.chat || {};
+
+    function isAdmin() {
+      return (currentProfile.role || "student") === "admin";
+    }
+
+    function isTeacher() {
+      return (currentProfile.role || "student") === "teacher";
+    }
+
+    function canManageSchool() {
+      return isTeacher() || isAdmin();
+    }
+
+    function getBoundStudentCode() {
+      return normalizeCode(currentProfile.boundStudentCode || "");
+    }
+
+    function getBoundStudentRecord() {
+      const code = getBoundStudentCode();
+      if (!code) return null;
+      return Object.values(studentsCache || {}).find(
+        (st) => normalizeCode(st.studentCode) === code
+      ) || null;
+    }
+
+    function getParentAllowedClass() {
+      if (canManageSchool()) return "";
+      const boundStudent = getBoundStudentRecord();
+      return boundStudent && boundStudent.className
+        ? normalizeClass(boundStudent.className)
+        : "";
+    }
+
+    function getParentAllowedSchool() {
+      if (canManageSchool()) return "";
+      const boundStudent = getBoundStudentRecord();
+      return boundStudent && boundStudent.school
+        ? normalizeSchool(boundStudent.school)
+        : "";
+    }
+
+    function isStudentAllowedForCurrentUser(studentKey, st = {}) {
+      if (canManageSchool()) return true;
+      const boundCode = getBoundStudentCode();
+      if (!boundCode) return false;
+
+      const stCode = normalizeCode(st.studentCode || "");
+      const stKeyNorm = normalizeCode(studentKey);
+      return stCode === boundCode || stKeyNorm === boundCode;
+    }
+
+    function isAnnouncementAllowedForCurrentUser(ann = {}) {
+      if (canManageSchool()) return true;
+
+      const annClass = normalizeClass(ann.className || "");
+      const annSchool = normalizeSchool(ann.school || "");
+      const parentClass = getParentAllowedClass();
+      const parentSchool = getParentAllowedSchool();
+
+      if (!parentClass) return false;
+      const classMatch = annClass === parentClass;
+      const schoolMatch = !parentSchool || !annSchool || annSchool === parentSchool;
+      return classMatch && schoolMatch;
+    }
+
+    /* ---------- АВТОРИЗАТСИЯ ---------- */
+    function switchAuthMode(mode) {
+      authMode = mode;
+      const isReg = mode === "register";
+      document.getElementById("tabLogin").classList.toggle("active", !isReg);
+      document.getElementById("tabRegister").classList.toggle("active", isReg);
+      document.getElementById("registerFields").classList.toggle("hidden", !isReg);
+      document.getElementById("authSubmitBtn").textContent = isReg ? "Бақайдгирӣ" : "Ворид шудан";
+      toggleRegisterRoleFields();
+      hideBanner();
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      hideBanner();
+
+      const email = document.getElementById("emailInput").value.trim();
+      const password = document.getElementById("passwordInput").value;
+
+      try {
+        if (authMode === "register") {
+          const fullName = document.getElementById("fullNameInput").value.trim();
+          const role = document.getElementById("roleInput").value;
+          const school = resolveSelectOrCustom("schoolSelect", "schoolCustomInput", "Мактаб");
+          const boundStudentCode = role === "student"
+            ? normalizeCode(document.getElementById("childCodeInput").value)
+            : "";
+
+          if (!fullName) {
+            showBanner("Лутфан ному насаби пурраро ворид кунед.");
+            return;
+          }
+
+          if (role === "student" && !boundStudentCode) {
+            showBanner("Барои волидайн / хонанда ворид кардани Рамз / ID талаба ҳатмист.");
+            return;
+          }
+
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          const uid = safeKey(cred.user.uid, "user");
+
+          await db.ref(`users/${uid}`).set({
+            uid: cred.user.uid,
+            fullName,
+            role,
+            school,
+            boundStudentCode,
+            email,
+            createdAt: Date.now()
+          });
+
+          try {
+            await cred.user.sendEmailVerification();
+          } catch (_) {}
+
+          showBanner("Аккаунт сохта шуд! Линки тасдиқ ба почтаи шумо фиристода шуд.", true);
+        } else {
+          await auth.signInWithEmailAndPassword(email, password);
+        }
+      } catch (err) {
+        showBanner("Хатогӣ: " + (err.message || err));
+      }
+    }
+
+    async function handleBindStudentCode(e) {
+      e.preventDefault();
+      hideBanner();
+
+      if (!currentUser || canManageSchool()) return;
+
+      const code = normalizeCode(document.getElementById("bindCodeInput").value);
+      if (!code) {
+        showBanner("Рамз / ID талабаро ворид кунед.");
+        return;
+      }
+
+      const uid = safeKey(currentUser.uid, "user");
+      currentProfile.boundStudentCode = code;
+      saveLocalCache({ profile: currentProfile });
+      updateParentPrivacyUi();
+      renderAllUI();
+
+      if (!navigator.onLine) {
+        pushOfflineQueue({ type: "set", path: `users/${uid}/boundStudentCode`, payload: code });
+        showBanner(`Рамзи (${code}) дар Офлайн-буфер ҳифз шуд.`, true);
+        return;
+      }
+
+      try {
+        await db.ref(`users/${uid}/boundStudentCode`).set(code);
+        showBanner(`Рамзи талаба (${code}) тасдиқ шуд.`, true);
+      } catch (err) {
+        pushOfflineQueue({ type: "set", path: `users/${uid}/boundStudentCode`, payload: code });
+        showBanner("Дар буфери офлайн нигоҳ дошта шуд: " + (err.message || err));
+      }
+    }
+
+    function updateParentPrivacyUi() {
+      const isParentOrStudent = !canManageSchool();
+      const panel = document.getElementById("parentBindPanel");
+      panel.classList.toggle("hidden", !isParentOrStudent);
+
+      document.getElementById("studentsTitle").textContent = isParentOrStudent
+        ? "Маълумоти талабаи шумо"
+        : "Рӯйхати хонандагон";
+
+      document.getElementById("gradesTitle").textContent = isParentOrStudent
+        ? "Баҳо (1–10) ва Давомоти талабаи шумо"
+        : "Баҳогузорӣ (1–10) ва Давомот";
+
+      const code = getBoundStudentCode();
+      const bindInput = document.getElementById("bindCodeInput");
+      if (bindInput && code) bindInput.value = code;
+
+      const matched = getBoundStudentRecord();
+      const allowedClass = getParentAllowedClass();
+
+      if (canManageSchool()) {
+        document.getElementById("announcementsTitle").textContent = "Эълонҳои мактабҳо ва синфҳо";
+        document.getElementById("announcementsClassBadge").textContent = isAdmin() ? "ADMIN" : "МУАЛЛИМ";
+      } else {
+        document.getElementById("announcementsTitle").textContent = allowedClass
+          ? `Эълонҳои синфи ${allowedClass}`
+          : "Эълонҳои синфӣ";
+        document.getElementById("announcementsClassBadge").textContent = allowedClass || "Синф муайян нест";
+      }
+
+      document.getElementById("boundStudentInfo").textContent = code
+        ? (matched
+            ? `Пайвастшуда: ${matched.fullName} • Синф: ${matched.className || "—"} • Мактаб: ${matched.school || "—"} • Рамз: ${code}`
+            : `Рамзи фаъол: ${code} (агар талаба ҳоло дар рӯйхат нест, ба муаллим хабар диҳед)`)
+        : "Огоҳӣ: Рамзи талаба ҳанӯз ворид нашудааст.";
+    }
+
+    async function handleLogout() {
+      await auth.signOut();
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+      updateNetworkStatusUI();
+
+      if (!user) {
+        currentUser = null;
+        document.getElementById("authSection").classList.remove("hidden");
+        document.getElementById("appSection").classList.add("hidden");
+        return;
+      }
+
+      currentUser = user;
+      const uid = safeKey(user.uid, "user");
+
+      if (navigator.onLine) {
+        try {
+          const snap = await db.ref(`users/${uid}`).get();
+          currentProfile = snap.exists()
+            ? snap.val()
+            : { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+          saveLocalCache({ profile: currentProfile });
+        } catch (_) {
+          currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+        }
+      } else {
+        currentProfile = loadLocalCache().profile || { fullName: user.email || "Корбар", role: "student", school: "", boundStudentCode: "" };
+      }
+
+      document.getElementById("authSection").classList.add("hidden");
+      document.getElementById("appSection").classList.remove("hidden");
+
+      const role = currentProfile.role || "student";
+      document.getElementById("userMeta").textContent =
+        `${currentProfile.fullName} (${user.email || ""})`;
+
+      const badge = document.getElementById("roleBadge");
+      badge.textContent = role.toUpperCase();
+      badge.className = role === "admin" ? "badge danger" : "badge";
+
+      const canManage = canManageSchool();
+      document.getElementById("addStudentPanel").classList.toggle("hidden", !canManage);
+      document.getElementById("gradeFormPanel").classList.toggle("hidden", !canManage);
+      document.getElementById("announcementPanel").classList.toggle("hidden", !canManage);
+
+      updateParentPrivacyUi();
+      renderAllUI();
+      startRealtimeListeners();
+      if (navigator.onLine) syncOfflineQueue();
+    });
+
+    function switchSection(secName, btnEl) {
+      for (const name of ["smart", "students", "grades", "announcements", "chat"]) {
+        document.getElementById(`sec-${name}`).classList.toggle("hidden", name !== secName);
+      }
+      document.querySelectorAll(".nav-tabs button").forEach((b) => b.classList.remove("active"));
+      if (btnEl) btnEl.classList.add("active");
+    }
+
+    /* ---------- АМАЛҲО БО ДАСТГИРИИ ОФЛАЙН-БУФЕР ---------- */
+    async function handleAddStudent(e) {
+      e.preventDefault();
+      hideBanner();
+
+      if (!canManageSchool()) {
+        showBanner("Танҳо муаллим ё админ метавонад хонанда илова кунад.");
+        return;
+      }
+
+      const fullName = document.getElementById("stName").value.trim();
+      const school = resolveSelectOrCustom("stSchoolSelect", "stSchoolCustom", currentProfile.school || "Мактаб");
+      const className = normalizeClass(document.getElementById("stClass").value || "9-А");
+      const rawCode = normalizeCode(document.getElementById("stCode").value);
+      const finalCode = rawCode || `ST-${Date.now().toString().slice(-5)}`;
+
+      if (!fullName) {
+        showBanner("Ному насаби хонандаро нависед.");
+        return;
+      }
+
+      const uniqueSuffix = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      const studentKey = safeKey(`${safeKey(school, "school")}_${safeKey(finalCode, "st")}_${uniqueSuffix}`, `st_${uniqueSuffix}`);
+
+      const payload = {
+        id: studentKey,
+        fullName,
+        school,
+        className,
+        studentCode: finalCode,
+        addedBy: currentProfile.fullName || currentUser.email,
+        createdAt: Date.now()
+      };
+
+      studentsCache[studentKey] = payload;
+      saveLocalCache({ students: studentsCache });
+      renderAllUI();
+
+      document.getElementById("stName").value = "";
+      document.getElementById("stCode").value = "";
+      document.getElementById("stName").focus();
+
+      if (!navigator.onLine) {
+        pushOfflineQueue({ type: "set", path: `students/${studentKey}`, payload });
+        showBanner(`Хонанда "${fullName}" дар Офлайн-буфер сабт шуд!`, true);
+        return;
+      }
+
+      try {
+        await db.ref(`students/${studentKey}`).set(payload);
+        showBanner(`Хонанда "${fullName}" (Синф: ${className}, Рамз: ${finalCode}) илова шуд!`, true);
+      } catch (err) {
+        pushOfflineQueue({ type: "set", path: `students/${studentKey}`, payload });
+        showBanner("Дар буфери офлайн нигоҳ дошта шуд: " + (err.message || err));
+      }
+    }
+
+    async function handleDeleteStudent(studentKey) {
+      if (!canManageSchool()) return;
+      if (!confirm("Ин хонандаро пок кардан мехоҳед?")) return;
+      try {
+        await db.ref(`students/${safeKey(studentKey)}`).remove();
+        showBanner("Хонанда пок карда шуд.", true);
+      } catch (err) {
+        showBanner("Хато ҳангоми пок кардан: " + (err.message || err));
+      }
+    }
+
+    async function handleSaveGrade(e) {
+      e.preventDefault();
+      hideBanner();
+
+      if (!canManageSchool()) {
+        showBanner("Танҳо муаллим ё админ метавонад баҳо гузорад.");
+        return;
+      }
+
+      const studentKey = document.getElementById("grStudentSelect").value;
+      const subject = resolveSelectOrCustom("grSubjectSelect", "grSubjectCustom", "");
+      const score = Number(document.getElementById("grScore").value);
+      const attendance = document.getElementById("grAttendance").value;
+      const note = document.getElementById("grNote").value.trim();
+
+      if (!studentKey) {
+        showBanner("Аввал хонандаро интихоб кунед.");
+        return;
+      }
+      if (!subject) {
+        showBanner("Лутфан фанро интихоб ё нависед.");
+        return;
+      }
+      if (Number.isNaN(score) || score < 1 || score > 10) {
+        showBanner("Баҳо бояд аз 1 то 10 бошад.");
+        return;
+      }
+
+      const st = studentsCache[studentKey] || {};
+      const safeKeyId = safeKey(studentKey, "student");
+      const payload = {
+        studentKey: safeKeyId,
+        studentCode: normalizeCode(st.studentCode || ""),
+        studentName: st.fullName || safeKeyId,
+        subject,
+        score,
+        attendance,
+        note,
+        teacherName: currentProfile.fullName || currentUser.email,
+        createdAt: Date.now()
+      };
+
+      const tempId = `local_${Date.now()}`;
+      if (!gradesCache[safeKeyId]) gradesCache[safeKeyId] = {};
+      gradesCache[safeKeyId][tempId] = payload;
+      saveLocalCache({ grades: gradesCache });
+      renderAllUI();
+
+      document.getElementById("grScore").value = "";
+      document.getElementById("grNote").value = "";
+      if (document.getElementById("grSubjectSelect").value === "__custom__") {
+        document.getElementById("grSubjectCustom").value = "";
+      }
+
+      if (!navigator.onLine) {
+        pushOfflineQueue({ type: "push", path: `grades/${safeKeyId}`, payload });
+        showBanner("Баҳо ва ёддошт дар Офлайн-буфер сабт шуд!", true);
+        return;
+      }
+
+      try {
+        delete gradesCache[safeKeyId][tempId];
+        await db.ref(`grades/${safeKeyId}`).push(payload);
+        showBanner("Баҳо, давомот ва ёддошт сабт шуд!", true);
+      } catch (err) {
+        pushOfflineQueue({ type: "push", path: `grades/${safeKeyId}`, payload });
+        showBanner("Дар буфери офлайн нигоҳ дошта шуд: " + (err.message || err));
+      }
+    }
+
+    async function handleDeleteGrade(studentKey, gradeId) {
+      if (!canManageSchool()) return;
+      try {
+        await db.ref(`grades/${safeKey(studentKey)}/${safeKey(gradeId)}`).remove();
+        showBanner("Баҳо пок карда шуд!", true);
+      } catch (err) {
+        showBanner("Хато ҳангоми пок кардани баҳо: " + (err.message || err));
+      }
+    }
+
+    async function handleAddAnnouncement(e) {
+      e.preventDefault();
+      hideBanner();
+
+      if (!canManageSchool()) {
+        showBanner("Танҳо муаллим ё админ метавонад эълон нашр кунад.");
+        return;
+      }
+
+      const school = document.getElementById("annSchoolInput").value.trim();
+      const className = normalizeClass(document.getElementById("annClassInput").value);
+      const title = document.getElementById("annTitle").value.trim();
+      const body = document.getElementById("annBody").value.trim();
+
+      if (!school || !className) {
+        showBanner("Номи мактаб ва синфро ворид кунед.");
+        return;
+      }
+
+      const payload = {
+        school,
+        className,
+        title,
+        body,
+        author: currentProfile.fullName || currentUser.email,
+        authorUid: currentUser.uid,
+        role: currentProfile.role || "user",
+        createdAt: Date.now()
+      };
+
+      document.getElementById("annTitle").value = "";
+      document.getElementById("annBody").value = "";
+
+      if (!navigator.onLine) {
+        const tempKey = `local_${Date.now()}`;
+        announcementsCache[tempKey] = payload;
+        saveLocalCache({ announcements: announcementsCache });
+        renderAllUI();
+        pushOfflineQueue({ type: "push", path: "announcements", payload });
+        showBanner("Эълон дар Офлайн-буфер сабт шуд!", true);
+        return;
+      }
+
+      try {
+        await db.ref("announcements").push(payload);
+        showBanner(`Эълон барои синфи "${className}" нашр шуд!`, true);
+      } catch (err) {
+        pushOfflineQueue({ type: "push", path: "announcements", payload });
+        showBanner("Дар буфери офлайн нигоҳ дошта шуд: " + (err.message || err));
+      }
+    }
+
+    async function handleDeleteAnnouncement(annId) {
+      if (!canManageSchool()) return;
+      try {
+        await db.ref(`announcements/${safeKey(annId)}`).remove();
+        showBanner("Эълон пок карда шуд.", true);
+      } catch (err) {
+        showBanner("Хато ҳангоми пок кардани эълон: " + (err.message || err));
+      }
+    }
+
+    async function handleSendMessage(e) {
+      e.preventDefault();
+      hideBanner();
+
+      const input = document.getElementById("chatInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const payload = {
+        sender: currentProfile.fullName || currentUser.email,
+        role: currentProfile.role || "user",
+        text,
+        createdAt: Date.now()
+      };
+
+      input.value = "";
+
+      if (!navigator.onLine) {
+        const tempKey = `local_${Date.now()}`;
+        chatCache[tempKey] = payload;
+        saveLocalCache({ chat: chatCache });
+        renderChat(chatCache);
+        pushOfflineQueue({ type: "push", path: "chat", payload });
+        showBanner("Паём дар Офлайн-буфер нигоҳ дошта шуд.", true);
+        return;
+      }
+
+      try {
+        await db.ref("chat").push(payload);
+      } catch (err) {
+        pushOfflineQueue({ type: "push", path: "chat", payload });
+        showBanner("Дар буфери офлайн нигоҳ дошта шуд: " + (err.message || err));
+      }
+    }
+
+    /* ---------- ТАҲЛИЛИ ИНТЕЛЛЕКТУАЛӢ (ТАШХИС ВА РАДАРИ ХАТАР) ---------- */
+    function renderSmartAnalytics() {
+      const weakSpotBox = document.getElementById("weakSpotBox");
+      const riskRadarBox = document.getElementById("riskRadarBox");
+
+      const visibleGrades = [];
+      Object.entries(gradesCache || {}).forEach(([studentKey, studentGrades]) => {
+        if (!studentGrades || typeof studentGrades !== "object") return;
+        const stObj = studentsCache[studentKey] || {};
+        Object.entries(studentGrades).forEach(([_, item]) => {
+          const recordCode = normalizeCode(item.studentCode || stObj.studentCode || "");
+          const allowed = canManageSchool() || (
+            getBoundStudentCode() !== "" && (
+              recordCode === getBoundStudentCode() ||
+              normalizeCode(studentKey) === getBoundStudentCode() ||
+              isStudentAllowedForCurrentUser(studentKey, stObj)
+            )
+          );
+          if (allowed) {
+            visibleGrades.push({ ...item, studentKey });
+          }
+        });
+      });
+
+      if (!visibleGrades.length) {
+        weakSpotBox.innerHTML = `<p class="muted">Барои ташхис ҳанӯз баҳои кофӣ сабт нашудааст.</p>`;
+        riskRadarBox.innerHTML = `<p class="muted">Нишондиҳандаи хатар муайян нашуд.</p>`;
+        return;
+      }
+
+      const subjectStats = {};
+      visibleGrades.forEach((g) => {
+        const subj = g.subject || "Фан";
+        if (!subjectStats[subj]) subjectStats[subj] = { sum: 0, count: 0 };
+        subjectStats[subj].sum += Number(g.score || 0);
+        subjectStats[subj].count += 1;
+      });
+
+      const sortedSubjects = Object.entries(subjectStats)
+        .map(([subj, st]) => ({ subj, avg: st.sum / st.count, count: st.count }))
+        .sort((a, b) => a.avg - b.avg);
+
+      const weakest = sortedSubjects[0];
+      const strongest = sortedSubjects[sortedSubjects.length - 1];
+
+      weakSpotBox.innerHTML = `
+        <div style="margin-bottom:8px;">
+          <span class="badge ${weakest.avg < 6 ? "danger" : ""}">Нуқтаи таваҷҷуҳ: ${escapeHtml(weakest.subj)} (${weakest.avg.toFixed(1)}/10)</span>
+        </div>
+        <p style="font-size:0.86rem; color:#ffffff; margin-bottom:6px;">
+          <strong>Нақшаи худомӯзӣ:</strong> Ин ҳафта 3 машқи такрорӣ ва 25 дақиқа Фокус-таймерро ба фанни <b>${escapeHtml(weakest.subj)}</b> ҷудо кунед.
+        </p>
+        <p class="muted">Фанни қавӣ: ${escapeHtml(strongest.subj)} (${strongest.avg.toFixed(1)}/10)</p>
+      `;
+
+      const studentRiskMap = {};
+      visibleGrades.forEach((g) => {
+        const name = g.studentName || "Хонанда";
+        if (!studentRiskMap[name]) studentRiskMap[name] = { lowCount: 0, absentCount: 0, total: 0 };
+        studentRiskMap[name].total += 1;
+        if (Number(g.score) <= 5) studentRiskMap[name].lowCount += 1;
+        if (g.attendance === "Ғоиб") studentRiskMap[name].absentCount += 1;
+      });
+
+      const risky = Object.entries(studentRiskMap)
+        .filter(([_, s]) => s.lowCount > 0 || s.absentCount > 0)
+        .sort((a, b) => (b[1].lowCount + b[1].absentCount) - (a[1].lowCount + a[1].absentCount));
+
+      if (!risky.length) {
+        riskRadarBox.innerHTML = `
+          <span class="badge ok">Ҳолати устувор</span>
+          <p style="font-size:0.86rem; color:#ffffff; margin-top:8px;">Ягон хатари пастравии баҳо ё ғоибшавии зиёд ошкор нашуд.</p>
+        `;
+      } else {
+        riskRadarBox.innerHTML = risky.slice(0, 3).map(([name, s]) => `
+          <div style="padding:7px 9px; border-radius:8px; background:#111114; border-left:3px solid var(--orange); margin-bottom:6px;">
+            <strong style="color:#ffffff; font-size:0.88rem;">${escapeHtml(name)}</strong>
+            <div class="muted">Баҳои паст (≤5): ${s.lowCount} • Ғоиб: ${s.absentCount}</div>
+          </div>
+        `).join("");
+      }
+    }
+
+    /* ---------- ФОКУС-ТАЙМЕРИ ОМОДАГӢ БА ДАРС ---------- */
+    const FOCUS_TOTAL_SECONDS = 25 * 60;
+    let focusRemaining = FOCUS_TOTAL_SECONDS;
+    let focusInterval = null;
+    let focusCompletedMinutes = Number(localStorage.getItem("edaftar_focus_minutes") || 0);
+
+    function updateFocusUI() {
+      const mins = String(Math.floor(focusRemaining / 60)).padStart(2, "0");
+      const secs = String(focusRemaining % 60).padStart(2, "0");
+      document.getElementById("focusTimerText").textContent = `${mins}:${secs}`;
+      const pct = Math.max(0, Math.min(100, (focusRemaining / FOCUS_TOTAL_SECONDS) * 100));
+      document.getElementById("focusProgress").style.width = `${pct}%`;
+      document.getElementById("focusSessionsText").textContent = `Ҷаласаҳои имрӯза: ${focusCompletedMinutes} дақиқа`;
+    }
+
+    function toggleFocusTimer() {
+      if (focusInterval) {
+        clearInterval(focusInterval);
+        focusInterval = null;
+        return;
+      }
+
+      focusInterval = setInterval(() => {
+        if (focusRemaining > 0) {
+          focusRemaining -= 1;
+          updateFocusUI();
+        } else {
+          clearInterval(focusInterval);
+          focusInterval = null;
+          focusCompletedMinutes += 25;
+          localStorage.setItem("edaftar_focus_minutes", String(focusCompletedMinutes));
+          focusRemaining = FOCUS_TOTAL_SECONDS;
+          updateFocusUI();
+          const subj = document.getElementById("focusSubjectInput").value.trim() || "дарс";
+          showBanner(`Офарин! 25 дақиқа омодагӣ ба "${subj}" бо муваффақият анҷом ёфт!`, true);
+        }
+      }, 1000);
+    }
+
+    function resetFocusTimer() {
+      if (focusInterval) {
+        clearInterval(focusInterval);
+        focusInterval = null;
+      }
+      focusRemaining = FOCUS_TOTAL_SECONDS;
+      updateFocusUI();
+    }
+
+    /* ---------- ШУНАВАНДАГОНИ РЕАЛӢ ---------- */
+    let listenersStarted = false;
+
+    function startRealtimeListeners() {
+      if (listenersStarted) return;
+      listenersStarted = true;
+
+      db.ref("students").on("value", (snap) => {
+        studentsCache = snap.val() || {};
+        saveLocalCache({ students: studentsCache });
+        updateParentPrivacyUi();
+        renderAllUI();
+      });
+
+      db.ref("grades").on("value", (snap) => {
+        gradesCache = snap.val() || {};
+        saveLocalCache({ grades: gradesCache });
+        renderAllUI();
+      });
+
+      db.ref("announcements").on("value", (snap) => {
+        announcementsCache = snap.val() || {};
+        saveLocalCache({ announcements: announcementsCache });
+        renderAnnouncements(announcementsCache);
+      });
+
+      db.ref("chat").limitToLast(60).on("value", (snap) => {
+        chatCache = snap.val() || {};
+        saveLocalCache({ chat: chatCache });
+        renderChat(chatCache);
+      });
+    }
+
+    function renderAllUI() {
+      renderSmartAnalytics();
+      renderStudents(studentsCache);
+      renderStudentSelect(studentsCache);
+      renderGrades(gradesCache);
+      renderAnnouncements(announcementsCache);
+      renderChat(chatCache);
+      updateFocusUI();
+    }
+
+    function renderStudents(data) {
+      const container = document.getElementById("studentsList");
+      const entries = Object.entries(data || {}).filter(([key, st]) =>
+        isStudentAllowedForCurrentUser(key, st || {})
+      );
+
+      document.getElementById("studentsCountBadge").textContent = `${entries.length} хонанда`;
+
+      if (!entries.length) {
+        container.innerHTML = canManageSchool()
+          ? `<p class="muted">Ҳоло хонанда сабт нашудааст.</p>`
+          : `<p class="muted">Барои дидани маълумоти талаба, рамзи дурусти хонандаро дар боло ворид кунед.</p>`;
+        return;
+      }
+
+      const canManage = canManageSchool();
+      container.innerHTML = entries.reverse().map(([key, st]) => `
+        <div class="item">
+          <div class="item-top">
+            <strong>${escapeHtml(st.fullName)}</strong>
+            <div class="item-actions">
+              <span class="badge">${escapeHtml(st.className || "Синф")}</span>
+              ${canManage ? `<button type="button" class="btn-danger btn-sm" onclick="handleDeleteStudent('${escapeHtml(key)}')">Пок кардан</button>` : ""}
+            </div>
+          </div>
+          <div class="muted">Мактаб: ${escapeHtml(st.school || "—")} | Рамз: ${escapeHtml(st.studentCode || "—")}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderStudentSelect(data) {
+      const select = document.getElementById("grStudentSelect");
+      const entries = Object.entries(data || {});
+      if (!entries.length) {
+        select.innerHTML = `<option value="">Аввал хонанда илова кунед</option>`;
+        return;
+      }
+      select.innerHTML = entries.map(([key, st]) =>
+        `<option value="${escapeHtml(key)}">${escapeHtml(st.fullName)} (${escapeHtml(st.className || "")})</option>`
+      ).join("");
+    }
+
+    function renderGrades(data) {
+      const container = document.getElementById("gradesList");
+      const rows = [];
+
+      Object.entries(data || {}).forEach(([studentKey, studentGrades]) => {
+        if (studentGrades && typeof studentGrades === "object") {
+          Object.entries(studentGrades).forEach(([gradeId, item]) => {
+            const stObj = studentsCache[studentKey] || {};
+            const recordCode = normalizeCode(item.studentCode || stObj.studentCode || "");
+            const allowed = canManageSchool() || (
+              getBoundStudentCode() !== "" && (
+                recordCode === getBoundStudentCode() ||
+                normalizeCode(studentKey) === getBoundStudentCode() ||
+                isStudentAllowedForCurrentUser(studentKey, stObj)
+              )
+            );
+
+            if (allowed) {
+              rows.push({
+                ...item,
+                studentKey: item.studentKey || studentKey,
+                gradeId
+              });
+            }
+          });
+        }
+      });
+
+      rows.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      if (!rows.length) {
+        container.innerHTML = canManageSchool()
+          ? `<p class="muted">Ҳоло баҳо ё давомот сабт нашудааст.</p>`
+          : `<p class="muted">Барои талабаи шумо ҳоло баҳо сабт нашудааст.</p>`;
+        return;
+      }
+
+      const canManage = canManageSchool();
+      container.innerHTML = rows.map((r) => {
+        const isAbsent = r.attendance === "Ғоиб";
+        const isLow = Number(r.score) <= 5;
+        return `
+          <div class="item">
+            <div class="item-top">
+              <strong>${escapeHtml(r.studentName)} — ${escapeHtml(r.subject)}</strong>
+              <div class="item-actions">
+                <span class="badge ${isAbsent || isLow ? "danger" : ""}">Баҳо: ${escapeHtml(r.score)}/10 • ${escapeHtml(r.attendance)}</span>
+                ${canManage ? `<button type="button" class="btn-danger btn-sm" onclick="handleDeleteGrade('${escapeHtml(r.studentKey)}', '${escapeHtml(r.gradeId)}')">Пок кардан</button>` : ""}
+              </div>
+            </div>
+            ${r.note ? `<p style="font-size:0.86rem; color:#ffffff; margin:4px 0;">💬 Ёддошт: ${escapeHtml(r.note)}</p>` : ""}
+            <div class="muted">Муаллим: ${escapeHtml(r.teacherName || "—")}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderAnnouncements(data) {
+      const container = document.getElementById("announcementsList");
+      const canManage = canManageSchool();
+
+      const rows = Object.entries(data || {})
+        .map(([annId, item]) => ({ ...item, annId }))
+        .filter((item) => isAnnouncementAllowedForCurrentUser(item))
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+      if (!rows.length) {
+        container.innerHTML = canManage
+          ? `<p class="muted">Ҳоло эълон нест.</p>`
+          : `<p class="muted">Барои синф ва мактаби талабаи шумо ҳоло эълон нест.</p>`;
+        return;
+      }
+
+      container.innerHTML = rows.map((a) => `
+        <div class="item">
+          <div class="item-top">
+            <strong>${escapeHtml(a.title)}</strong>
+            <div class="item-actions">
+              <span class="badge">Синф: ${escapeHtml(a.className || "—")}</span>
+              ${canManage ? `<button type="button" class="btn-danger btn-sm" onclick="handleDeleteAnnouncement('${escapeHtml(a.annId)}')">Пок кардан</button>` : ""}
+            </div>
+          </div>
+          <p style="margin:6px 0;">${escapeHtml(a.body)}</p>
+          <div class="muted">Мактаб: ${escapeHtml(a.school || "—")} • Муаллиф: ${escapeHtml(a.author || "—")}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderChat(data) {
+      const box = document.getElementById("chatBox");
+      const list = Object.values(data || {}).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      if (!list.length) {
+        box.innerHTML = `<p class="muted">Ҳоло паём нест. Аввалин паёмро нависед!</p>`;
+        return;
+      }
+
+      box.innerHTML = list.map((m) => `
+        <div class="msg">
+          <div class="item-top">
+            <strong>${escapeHtml(m.sender)}</strong>
+            <span class="muted">${escapeHtml(m.role || "")}</span>
+          </div>
+          <div>${escapeHtml(m.text)}</div>
+        </div>
+      `).join("");
+
+      box.scrollTop = box.scrollHeight;
+    }
+
+    updateFocusUI();
+    updateNetworkStatusUI();
+  </script>
+</body>
+</html>
